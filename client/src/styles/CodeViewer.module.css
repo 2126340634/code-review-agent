@@ -1,0 +1,76 @@
+.editorWrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #2d2d2d;
+  color: #ccc;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.issueIndicator {
+  font-size: 11px;
+  color: #fbbf24;
+}
+
+.empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  background: #fafafa;
+}
+
+.emptyIcon {
+  font-size: 40px;
+}
+
+.empty p {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+:global(.review-highlight-error) {
+  background: rgba(239, 68, 68, 0.15);
+  border-left: 3px solid #ef4444;
+}
+:global(.review-highlight-warning) {
+  background: rgba(245, 158, 11, 0.12);
+  border-left: 3px solid #f59e0b;
+}
+:global(.review-highlight-info) {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+}
+
+:global(.review-glyph-error) {
+  background: #ef4444;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50%;
+  margin-left: 5px;
+}
+:global(.review-glyph-warning) {
+  background: #f59e0b;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50%;
+  margin-left: 5px;
+}
+:global(.review-glyph-info) {
+  background: #3b82f6;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50%;
+  margin-left: 5px;
+}

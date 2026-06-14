@@ -1,0 +1,273 @@
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.issueCount {
+  font-weight: 400;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.thinkingChain {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.stepDone {
+  background: #f0fdf4;
+}
+.stepActive {
+  background: #eef2ff;
+}
+
+.stepIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.stepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepText {
+  color: #374151;
+}
+.stepDetail {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
+.stepProgress {
+  font-size: 11px;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressBar {
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.summaryCard {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.scoreSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.scoreCircle {
+  width: 64px;
+  height: 64px;
+  border: 3px solid;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scoreValue {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scoreLabel {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.scoreMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.summaryText {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.issueCard {
+  padding: 10px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.issueCard:hover {
+  background: #fafafa;
+}
+
+.issueHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.categoryIcon {
+  font-size: 13px;
+}
+
+.issueTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  flex: 1;
+  min-width: 0;
+}
+
+.lineTag {
+  font-size: 11px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  color: #6366f1;
+  background: #eef2ff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lineTag:hover {
+  background: #e0e7ff;
+}
+
+.issueDesc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.issueDetail {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.codeBlock {
+  background: #1e1e1e;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.codeBlockLabel {
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 4px 12px;
+  background: #2d2d2d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.codeBlock pre {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+
+.codeBlock code {
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d4d4d4;
+}
+
+.suggestion {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.severityBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  color: #d1d5db;
+}
+
+.emptyState p {
+  font-size: 13px;
+  margin-top: 8px;
+  color: #9ca3af;
+}
+
+.errorState {
+  padding: 16px;
+  color: #dc2626;
+  font-size: 13px;
+  text-align: center;
+}
