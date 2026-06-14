@@ -77,9 +77,7 @@ export function useCodeReview() {
         }
       })
 
-      // 开发环境走 Vite 代理，生产环境可配 VITE_API_URL
-      const apiBase = import.meta.env.VITE_API_URL || ''
-      connect(`${apiBase}/api/review`, { code, language, dimensions })
+      connect(`/api/review`, { code, language, dimensions })
     },
     [connect, disconnect, onEvent]
   )
