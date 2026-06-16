@@ -15,27 +15,7 @@ export function useSSE(): UseSSEReturn {
   const abortRef = useRef<AbortController | null>(null)
   const callbackRef = useRef<((event: SSEEvent) => void) | null>(null)
   const retryCountRef = useRef(0)
-  const 项目地址：https://github.com/2126340634/code-review-agent
-
-项目背景：利用大模型能力，自动按安全、性能、风格、最佳实践四个维度审查代码，实时输出结果，帮助开发者快速发现潜在问题。
-
-技术栈：React 19 + TypeScript + SSE + FastAPI + LangChain
-
-
-
-
-
-LangChain 接入 LLM API，实现安全、性能、风格、最佳实践四维度自动审查，单维度超时自动跳过，不影响整体流程。
-
-
-
-SSE 实现审查阶段实时显示，断开自动重连，LLM 输出异常时正则解析兜底。
-
-
-
-自定义 Hooks 管理多步骤审查状态，Monaco Editor 支持代码高亮编辑。
-
- = 3
+  const MAX_RETRIES = 3
 
   const onEvent = useCallback((cb: (event: SSEEvent) => void) => {
     callbackRef.current = cb
