@@ -3,7 +3,7 @@ from typing import Literal, Optional
 
 
 class ReviewRequest(BaseModel):
-    code: str = Field(..., min_length=1, max_length=200000, description="待审查的代码")
+    code: str = Field(..., min_length=1, description="待审查的代码")
     dimensions: list[str] = Field(
         default=["security", "performance", "style", "best_practice"],
         description="审查维度",

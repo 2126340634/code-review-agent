@@ -66,7 +66,17 @@ def _error_event(message: str) -> str:
     return _build_sse_event("error", payload)
 
 
-def _parse_issues(raw: str, category: str = "") -> list[dict]:
+def _chunk_code(code: str, chunk_size: int = 3000) -> list[tuple[int, str]]:
+    """按行分块，返回 [(开始行, 代码块), ...]"""
+    lines = code.split("\n")
+    chunks: list[tuple[int, str]] = []
+    for start in range(0, len(lines), chunk_size):
+        end = min(start + chunk_size, len(lines))
+        chunks.append((start + 1, "\n".join(lines[start:end])))
+    return chunks
+
+
+def _parse_issues(raw: str, category: str = "", line_offset: int = 0) -> list[dict]:
     """解析llm返回的json，过滤只保留问题列表数据"""
     text = raw.strip()  # 删掉首位空格和换行符
     if text.startswith("```"):
@@ -110,8 +120,9 @@ def _parse_issues(raw: str, category: str = "") -> list[dict]:
                 "title": item.get("title", ""),
                 "description": item.get("description", ""),
                 "suggestion": item.get("suggestion", ""),
-                "line_start": int(item.get("line_start", 0)),  # 问题开始行
-                "line_end": int(item.get("line_end", 0)),  # 问题结束行
+                "line_start": int(item.get("line_start", 0))
+                + line_offset,  # 问题开始行
+                "line_end": int(item.get("line_end", 0)) + line_offset,  # 问题结束行
                 "code_snippet": item.get("code_snippet", ""),  # 问题具体代码片段
                 "fixed_code": item.get("fixed_code") or None,  # 修复代码
             }
@@ -136,21 +147,19 @@ async def review_code_stream(
         yield _error_event("代码为空，请提供需要审查的代码")
         return
 
-    if len(code) > settings.MAX_CODE_LENGTH:
-        code = code[: settings.MAX_CODE_LENGTH]
-        yield _thinking_event(f"代码过长，已截断至前{settings.MAX_CODE_LENGTH}字符", 0)
-
     valid_dims = [d for d in dimensions if d in settings.available_dimensions]
     if not valid_dims:
         yield _error_event(f"无效的审查维度: {dimensions}")
         return
 
-    total_steps = len(valid_dims) + 2  # 额外2步为初始化和json解析
+    # 按行分块
+    chunks = _chunk_code(code)
+    total_steps = len(valid_dims) * len(chunks) + 2  # 初始 + 解析
     current_step = 0
 
     current_step += 1
     yield _thinking_event(
-        "初始化审查引擎...",
+        f"初始化审查引擎（代码已分 {len(chunks)} 块）...",
         current_step / total_steps,
     )
 
@@ -163,75 +172,75 @@ async def review_code_stream(
     )
 
     all_issues: list[dict] = []
-    dimension_responses: dict[str, str] = {}
+    dimension_responses: dict[str, list[tuple[int, str]]] = {}
 
     for dim in valid_dims:
-        current_step += 1
         label = DIMENSION_LABELS.get(dim)
-        yield _thinking_event(
-            f"{label}...",
-            current_step / total_steps,
-            f"审查维度: {label}",
-        )
+        dimension_responses[dim] = []
 
-        prompt_text = build_review_prompt(code, dim)
-        messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=prompt_text),
-        ]
-
-        try:
-            response = await asyncio.wait_for(
-                llm.ainvoke(messages), timeout=30  # 连接超时30秒
-            )
-            raw_output = (
-                response.content if hasattr(response, "content") else str(response)
-            )
-            # 收集原始响应
-            dimension_responses[dim] = str(raw_output)
-
-        except Exception as e:
+        for chunk_offset, chunk_text in chunks:
+            current_step += 1
             yield _thinking_event(
-                f"{label}审查出错，跳过: {str(e)}",
+                f"{label}（块 {chunk_offset} 行起）...",
                 current_step / total_steps,
-                detail=str(e),
+                f"审查维度: {label}，第 {chunk_offset} 行开始",
             )
-            dimension_responses[dim] = ""  # 标记为失败
+
+            prompt_text = build_review_prompt(chunk_text, dim)
+            messages = [
+                SystemMessage(content=SYSTEM_PROMPT),
+                HumanMessage(content=prompt_text),
+            ]
+
+            try:
+                response = await asyncio.wait_for(llm.ainvoke(messages), timeout=30)
+                raw_output = (
+                    response.content if hasattr(response, "content") else str(response)
+                )
+                dimension_responses[dim].append((chunk_offset, str(raw_output)))
+
+            except Exception as e:
+                yield _thinking_event(
+                    f"{label}块 {chunk_offset} 行审查出错，跳过: {str(e)}",
+                    current_step / total_steps,
+                    detail=str(e),
+                )
 
     current_step += 1
     yield _thinking_event(
-        "正在解析和格式化审查结果...",
+        "正在解析和合并分块审查结果...",
         current_step / total_steps,
     )
 
-    # 统一解析完整json
+    # 解析所有分块结果（带行号偏移）
     for dim in valid_dims:
-        raw_output = dimension_responses.get(dim, "")
-        if not raw_output:
+        chunk_results = dimension_responses.get(dim, [])
+        if not chunk_results:
             continue
 
-        try:
-            issues = _parse_issues(raw_output, category=dim)
+        for chunk_offset, raw_output in chunk_results:
+            try:
+                issues = _parse_issues(
+                    raw_output, category=dim, line_offset=chunk_offset - 1
+                )
 
-            for issue in issues:
-                if not issue["category"]:
-                    issue["category"] = dim
-                issue["id"] = f"{dim}-{issue['id']}"
+                for issue in issues:
+                    if not issue["category"]:
+                        issue["category"] = dim
+                    issue["id"] = f"{dim}-{issue['id']}"
 
-            all_issues.extend(issues)
+                all_issues.extend(issues)
 
-            # 统一输出所有问题
-            for issue in issues:
-                yield _issue_event(issue)
-                await asyncio.sleep(0.05)
+                for issue in issues:
+                    yield _issue_event(issue)
+                    await asyncio.sleep(0.05)
 
-        except Exception as e:
-            # 记录解析错误但继续
-            label = DIMENSION_LABELS.get(dim, dim)
-            yield _thinking_event(
-                f"{label}结果解析失败: {str(e)}",
-                current_step / total_steps,
-            )
+            except Exception as e:
+                label = DIMENSION_LABELS.get(dim, dim)
+                yield _thinking_event(
+                    f"{label}块 {chunk_offset} 行结果解析失败: {str(e)}",
+                    current_step / total_steps,
+                )
 
     current_step += 1
     yield _thinking_event(
