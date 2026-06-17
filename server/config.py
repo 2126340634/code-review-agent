@@ -8,7 +8,6 @@ class Settings:
     MODEL_API_KEY: str = os.getenv("MODEL_API_KEY")
     MODEL_BASE_URL: str = os.getenv("MODEL_BASE_URL")
     MODEL_NAME: str = os.getenv("MODEL_NAME")
-    MAX_CODE_LENGTH: int = int(os.getenv("MAX_CODE_LENGTH"))
     PORT: int = int(os.getenv("PORT"))
 
     @property

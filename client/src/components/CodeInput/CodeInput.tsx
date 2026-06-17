@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
 import Editor, { type OnMount } from '@monaco-editor/react'
-import type { editor } from 'monaco-editor'
 import { DimensionSelector } from '../DimensionSelector/DimensionSelector'
 import { LANGUAGE_OPTIONS } from '../../types'
 import type { ReviewDimension } from '../../types'
@@ -19,10 +18,22 @@ export function CodeInput({ onSubmit, loading, disabled }: Props) {
   const [inputMode, setInputMode] = useState<'paste' | 'upload'>('paste')
   const [filename, setFilename] = useState('')
   const [dragOver, setDragOver] = useState(false)
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const editorRef = useRef<any>(null)
+  const [formatMsg, setFormatMsg] = useState<string | null>(null)
+
+  // 支持格式化的语言列表（Monaco 内置）
+  const FORMATTABLE_LANGUAGES = ['javascript', 'typescript', 'html', 'css', 'json']
 
   const handleMount: OnMount = (editorInstance) => {
     editorRef.current = editorInstance
+  }
+
+  const formatLangLabels: Record<string, string> = {
+    javascript: 'JavaScript',
+    typescript: 'TypeScript',
+    html: 'HTML',
+    css: 'CSS',
+    json: 'JSON'
   }
 
   const handleSubmit = useCallback(() => {
@@ -32,9 +43,27 @@ export function CodeInput({ onSubmit, loading, disabled }: Props) {
 
   const handleFormat = useCallback(() => {
     if (editorRef.current) {
-      editorRef.current.getAction('editor.action.formatDocument')?.run()
+      // 检查当前语言是否支持格式化
+      if (!language || !FORMATTABLE_LANGUAGES.includes(language)) {
+        setFormatMsg('该语言暂不支持格式化')
+        setTimeout(() => setFormatMsg(null), 2500)
+        return
+      }
+
+      const action = editorRef.current.getAction('editor.action.formatDocument')
+      if (action) {
+        action.run()
+        // 稍后给出完成反馈
+        setTimeout(() => {
+          setFormatMsg('格式化完成')
+          setTimeout(() => setFormatMsg(null), 1500)
+        }, 100)
+      } else {
+        setFormatMsg(`${formatLangLabels[language] || language} 格式化器未加载`)
+        setTimeout(() => setFormatMsg(null), 2500)
+      }
     }
-  }, [])
+  }, [language])
 
   const handleFile = useCallback((file: File) => {
     setFilename(file.name)
@@ -102,6 +131,7 @@ export function CodeInput({ onSubmit, loading, disabled }: Props) {
         <button className={styles.formatBtn} onClick={handleFormat} disabled={!code.trim()} title="按 Alt+Shift+F 格式化代码">
           格式化
         </button>
+        {formatMsg && <span className={styles.formatToast}>{formatMsg}</span>}
       </div>
 
       {inputMode === 'paste' ? (
