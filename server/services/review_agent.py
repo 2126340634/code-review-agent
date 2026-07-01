@@ -154,7 +154,7 @@ async def review_code_stream(
 
     # 按行分块
     chunks = _chunk_code(code)
-    total_steps = len(valid_dims) * len(chunks) + 2  # 初始 + 解析
+    total_steps = len(valid_dims) * len(chunks) + 3  # 初始 + 解析 + 报告
     current_step = 0
 
     current_step += 1

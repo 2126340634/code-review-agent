@@ -1,6 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react'
 import Editor, { type OnMount } from '@monaco-editor/react'
-import type { editor } from 'monaco-editor'
 import type { ReviewIssue } from '../../types'
 import styles from '../../styles/CodeViewer.module.css'
 
@@ -18,13 +17,17 @@ const SEVERITY_COLORS: Record<string, string> = {
 }
 
 export function CodeEditor({ code, language, issues }: Props) {
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const editorRef = useRef<any>(null)
   const monacoRef = useRef<any>(null)
   const decorationsRef = useRef<string[]>([])
 
   const handleMount: OnMount = useCallback((editorInstance, monaco) => {
     editorRef.current = editorInstance
     monacoRef.current = monaco
+
+    editorInstance.addCommand(monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+      editorInstance.getAction('editor.action.formatDocument')?.run()
+    })
   }, [])
 
   // 更新问题行标记
